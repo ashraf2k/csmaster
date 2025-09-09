@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduPlan - Lesson Planner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    .card-hover:hover{transform:translateY(-5px);box-shadow:0 20px 25px -5px rgba(0,0,0,.1),0 10px 10px -5px rgba(0,0,0,.04);}
+    .transition-all {transition: all .3s ease;}
+  </style>
+</head>
+<body class="bg-gray-50">
+<nav class="bg-white shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <div class="flex items-center">
+        <i data-feather="book-open" class="text-indigo-600 mr-2"></i>
+        <span class="text-xl font-bold text-indigo-600">EduPlan</span>
+      </div>
+      <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+        <a href="index.html" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Home</a>
+        <a href="teacher.html" class="border-transparent text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Teacher Portal</a>
+        <a href="parent.html" class="border-transparent text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Parent Portal</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="text-center">
+      <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl" data-aos="fade-down">
+        <span class="block">Streamline Your</span>
+        <span class="block text-indigo-600">Lesson Planning</span>
+      </h1>
+      <p class="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl" data-aos="fade-up" data-aos-delay="100">
+        Now backed by <span class="font-semibold">Google Sheets</span> — teachers save once, parents see anywhere.
+      </p>
+      <div class="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8" data-aos="fade-up" data-aos-delay="200">
+        <div class="rounded-md shadow">
+          <a href="teacher.html" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10">
+            Teacher Portal
+          </a>
+        </div>
+        <div class="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
+          <a href="parent.html" class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10">
+            Parent Portal
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-16 grid gap-8 md:grid-cols-3">
+      <div class="bg-white overflow-hidden shadow rounded-lg transition-all card-hover" data-aos="fade-up" data-aos-delay="100">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+              <i data-feather="database" class="text-white"></i>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <h3 class="text-lg font-medium text-gray-900">Central Storage</h3>
+              <p class="mt-1 text-sm text-gray-500">All plans in one Google Sheet (Class 1–12).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg transition-all card-hover" data-aos="fade-up" data-aos-delay="200">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+              <i data-feather="share-2" class="text-white"></i>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <h3 class="text-lg font-medium text-gray-900">Export & Share</h3>
+              <p class="mt-1 text-sm text-gray-500">PNG/PDF exports and quick WhatsApp sharing.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white overflow-hidden shadow rounded-lg transition-all card-hover" data-aos="fade-up" data-aos-delay="300">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+              <i data-feather="edit" class="text-white"></i>
+            </div>
+            <div class="ml-5 w-0 flex-1">
+              <h3 class="text-lg font-medium text-gray-900">Edit Anywhere</h3>
+              <p class="mt-1 text-sm text-gray-500">Update plans and they sync for all parents.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="bg-white">
+  <div class="max-w-7xl mx-auto py-12 px-4 overflow-hidden sm:px-6 lg:px-8">
+    <p class="mt-8 text-center text-base text-gray-400">
+      &copy; 2025 EduPlan. All rights reserved.
+    </p>
+  </div>
+</footer>
+
+<script>AOS.init();</script>
+<script>feather.replace();</script>
+</body>
+</html>

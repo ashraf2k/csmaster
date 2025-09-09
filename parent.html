@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Parent Portal — EduPlan (Google Sheets)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="config.js"></script>
+  <style>.card-hover:hover{transform:translateY(-5px);box-shadow:0 20px 25px -5px rgba(0,0,0,.1),0 10px 10px -5px rgba(0,0,0,.04);}</style>
+</head>
+<body class="bg-gray-50">
+<nav class="bg-white shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <div class="flex items-center">
+        <i data-feather="book-open" class="text-indigo-600 mr-2"></i>
+        <span class="text-xl font-bold text-indigo-600">EduPlan</span>
+      </div>
+      <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+        <a href="index.html" class="border-transparent text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Home</a>
+        <a href="teacher.html" class="border-transparent text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Teacher Portal</a>
+        <a href="parent.html" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Parent Portal</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <div class="px-4 py-6 sm:px-0">
+    <div class="border-4 border-dashed border-gray-200 rounded-lg p-6">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">View Weekly Lesson Plans</h2>
+
+      <div class="bg-indigo-50 text-indigo-800 text-sm rounded-md p-3 mb-4">
+        Make sure <span class="font-semibold">config.js</span> has your <span class="font-semibold">SHEET_ID</span> and <span class="font-semibold">WEB_APP_URL</span>.
+      </div>
+
+      <form id="viewForm" class="space-y-6">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Week Number</label>
+            <select id="viewWeekNumber" class="mt-1 block w-full border-gray-300 rounded-md" required>
+              <option value="">Select Week</option>
+              <option value="1">Week 1</option><option value="2">Week 2</option>
+              <option value="3">Week 3</option><option value="4">Week 4</option>
+              <option value="5">Week 5</option><option value="6">Week 6</option>
+              <option value="7">Week 7</option><option value="8">Week 8</option>
+              <option value="9">Week 9</option><option value="10">Week 10</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Class (1–12)</label>
+            <select id="viewClassNumber" class="mt-1 block w-full border-gray-300 rounded-md" required>
+              <option value="">Select Class</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">WhatsApp Number (e.g., 9665XXXXXXXX)</label>
+            <input type="tel" id="waNumber" placeholder="International format digits only" class="mt-1 block w-full border-gray-300 rounded-md">
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-3 justify-end">
+          <button type="submit" class="py-2 px-4 rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Display Weekly Grid</button>
+          <button type="button" id="btnPng" class="py-2 px-4 rounded-md text-indigo-700 bg-indigo-50 hover:bg-indigo-100">Export as PNG</button>
+          <button type="button" id="btnPdf" class="py-2 px-4 rounded-md text-indigo-700 bg-indigo-50 hover:bg-indigo-100">Export as PDF</button>
+          <button type="button" id="btnWhatsApp" class="py-2 px-4 rounded-md text-green-700 bg-green-50 hover:bg-green-100">Send via WhatsApp</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="mt-8" id="plansContainer">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">Weekly Plan</h2>
+      <div id="gridWrapper" class="bg-white shadow overflow-hidden sm:rounded-lg p-4">
+        <div id="gridMeta" class="text-sm text-gray-600 mb-3">Select week & class then click "Display Weekly Grid".</div>
+        <div id="weeklyGrid" class="overflow-auto"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const CFG = window.EduPlanConfig;
+let lastCanvasBlob = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  AOS.init(); feather.replace();
+
+  const classSel = document.getElementById('viewClassNumber');
+  for(let i=1;i<=12;i++){ const o=document.createElement('option'); o.value=String(i); o.textContent='Class '+i; classSel.appendChild(o); }
+
+  document.getElementById('viewForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const week = document.getElementById('viewWeekNumber').value;
+    const cls = document.getElementById('viewClassNumber').value;
+    if(!week || !cls){ alert('Please select Week and Class.'); return; }
+    const rows = await apiGetByWeekClass(week, cls);
+    renderWeeklyGrid(week, cls, rows);
+  });
+
+  document.getElementById('btnPng').addEventListener('click', doExportPng);
+  document.getElementById('btnPdf').addEventListener('click', doExportPdf);
+  document.getElementById('btnWhatsApp').addEventListener('click', doWhatsApp);
+});
+
+async function doExportPng(){
+  const gridEl = document.getElementById('gridWrapper');
+  const canvas = await html2canvas(gridEl, {scale:2});
+  canvas.toBlob((blob)=>{
+    if(!blob){ alert('Could not create image.'); return; }
+    lastCanvasBlob = blob;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'WeeklyPlan.png'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 30000);
+  });
+}
+
+async function doExportPdf(){
+  const gridEl = document.getElementById('gridWrapper');
+  const canvas = await html2canvas(gridEl, {scale:2});
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({orientation:'landscape', unit:'pt', format:'a4'});
+  const imgData = canvas.toDataURL('image/png');
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const scale = Math.min(pageWidth/canvas.width, pageHeight/canvas.height);
+  const w = canvas.width * scale, h = canvas.height * scale;
+  pdf.addImage(imgData, 'PNG', (pageWidth-w)/2, (pageHeight-h)/2, w, h);
+  pdf.save('WeeklyPlan.pdf');
+  await new Promise(res=>canvas.toBlob(b=>{ lastCanvasBlob=b; res(); }));
+}
+
+async function doWhatsApp(){
+  const phone = (document.getElementById('waNumber').value||'').replace(/\D/g,'');
+  if(!phone){ alert('Enter a WhatsApp number (e.g., 9665XXXXXXXX).'); return; }
+  try{
+    if(navigator.canShare && lastCanvasBlob){
+      const file = new File([lastCanvasBlob], 'WeeklyPlan.png', {type: 'image/png'});
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], text:'Weekly plan attached.'});
+        window.open('https://wa.me/'+phone, '_blank');
+        return;
+      }
+    }
+  }catch(e){ console.warn(e); }
+  const msg = encodeURIComponent('Weekly plan generated. Please see the attached file (downloaded on my device).');
+  window.open('https://wa.me/'+phone+'?text='+msg, '_blank');
+  alert('WhatsApp Web cannot auto-attach files; attach the downloaded file manually.');
+}
+
+function renderWeeklyGrid(week, cls, rows){
+  const gridMeta = document.getElementById('gridMeta');
+  const grid = document.getElementById('weeklyGrid');
+  if(!rows || rows.length===0){
+    gridMeta.textContent = `No lesson plans found for Week ${week}, Class ${cls}.`;
+    grid.innerHTML = '';
+    return;
+  }
+
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday'];
+  const dayOrder = {Sunday:0, Monday:1, Tuesday:2, Wednesday:3, Thursday:4};
+  rows.sort((a,b)=> (a.Week - b.Week) || (dayOrder[a.Day]-dayOrder[b.Day]) || (a.Lesson - b.Lesson));
+
+  let maxLesson = 0;
+  rows.forEach(r => { if(Number(r.Lesson) > maxLesson) maxLesson = Number(r.Lesson); });
+  maxLesson = Math.max(maxLesson, 8);
+
+  const index = {};
+  rows.forEach(r => { index[r.Day+'#'+r.Lesson] = r; });
+
+  let html = '<table class="min-w-full divide-y divide-gray-200">';
+  html += '<thead class="bg-gray-50"><tr><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Lesson</th>';
+  days.forEach(d=> html += `<th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">${d}</th>`);
+  html += '</tr></thead><tbody class="bg-white divide-y divide-gray-200">';
+  for(let lesson=1; lesson<=maxLesson; lesson++){
+    html += '<tr>';
+    html += `<td class="px-4 py-3 text-sm text-gray-700 font-semibold">#${lesson}</td>`;
+    days.forEach(day => {
+      const p = index[day+'#'+lesson];
+      if(p){
+        html += `<td class="px-4 py-3 align-top">
+          <div class="text-sm font-medium text-gray-900">${p.Subject}</div>
+          <div class="text-xs text-gray-500">${day} • Week ${p.Week} • Class ${p.Class}</div>
+          <div class="mt-1 text-sm text-gray-700">${escapeHtml(p.Materials).replace(/\n/g,'<br>')}</div>
+          <div class="mt-1 grid grid-cols-2 gap-2 text-xs text-gray-600">
+            <div><span class="font-medium">Pages:</span> ${p['Textbook Pages']||'—'}</div>
+            <div><span class="font-medium">Quiz:</span> ${p.Quiz||'—'}</div>
+          </div>
+        </td>`;
+      } else {
+        html += '<td class="px-4 py-3 text-sm text-gray-300">—</td>';
+      }
+    });
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+
+  grid.innerHTML = html;
+  gridMeta.textContent = `Week ${week} • Class ${cls} • ${rows.length} lesson(s)`;
+}
+
+function escapeHtml(str){
+  return String(str||'').replace(/[&<>"']/g, (m)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+
+async function apiGetByWeekClass(week, cls){
+  const url = new URL(CFG.WEB_APP_URL);
+  url.searchParams.set('action','byWeekClass');
+  url.searchParams.set('sheetId', CFG.SHEET_ID);
+  url.searchParams.set('sheetName', CFG.SHEET_TAB_NAME || 'Plans');
+  url.searchParams.set('week', week);
+  url.searchParams.set('class', cls);
+  const res = await fetch(url.toString());
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error || 'Unknown error');
+  return data.rows || [];
+}
+</script>
+</body>
+</html>

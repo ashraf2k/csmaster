@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Teacher Portal — EduPlan (Google Sheets)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="config.js"></script>
+  <style>.card-hover:hover{transform:translateY(-5px);box-shadow:0 20px 25px -5px rgba(0,0,0,.1),0 10px 10px -5px rgba(0,0,0,.04);}</style>
+</head>
+<body class="bg-gray-50">
+<nav class="bg-white shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <div class="flex items-center">
+        <i data-feather="book-open" class="text-indigo-600 mr-2"></i>
+        <span class="text-xl font-bold text-indigo-600">EduPlan</span>
+      </div>
+      <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+        <a href="index.html" class="border-transparent text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Home</a>
+        <a href="teacher.html" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Teacher Portal</a>
+        <a href="parent.html" class="border-transparent text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">Parent Portal</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <div class="px-4 py-6 sm:px-0">
+    <div class="border-4 border-dashed border-gray-200 rounded-lg p-6">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Create / Edit Weekly Lesson Plan</h2>
+
+      <div class="bg-indigo-50 text-indigo-800 text-sm rounded-md p-3 mb-4">
+        Make sure <span class="font-semibold">config.js</span> has your <span class="font-semibold">SHEET_ID</span> and <span class="font-semibold">WEB_APP_URL</span>.
+      </div>
+
+      <form id="lessonForm" class="space-y-6">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Week Number</label>
+            <select id="weekNumber" class="mt-1 block w-full border-gray-300 rounded-md" required>
+              <option value="">Select Week</option>
+              <option value="1">Week 1</option><option value="2">Week 2</option>
+              <option value="3">Week 3</option><option value="4">Week 4</option>
+              <option value="5">Week 5</option><option value="6">Week 6</option>
+              <option value="7">Week 7</option><option value="8">Week 8</option>
+              <option value="9">Week 9</option><option value="10">Week 10</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Day</label>
+            <select id="lessonDay" class="mt-1 block w-full border-gray-300 rounded-md" required>
+              <option value="">Select Day</option>
+              <option>Sunday</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Lesson / Period #</label>
+            <input type="number" id="lessonNumber" min="1" max="12" required class="mt-1 block w-full border-gray-300 rounded-md">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Subject</label>
+            <input id="subjectName" required class="mt-1 block w-full border-gray-300 rounded-md">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Class (1–12)</label>
+            <select id="classNumber" required class="mt-1 block w-full border-gray-300 rounded-md">
+              <option value="">Select Class</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Materials / Topics</label>
+          <textarea id="materials" rows="3" required class="mt-1 block w-full border-gray-300 rounded-md"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Textbook Pages (optional)</label>
+            <input id="textbookPages" class="mt-1 block w-full border-gray-300 rounded-md">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Quiz (optional)</label>
+            <input id="quiz" class="mt-1 block w-full border-gray-300 rounded-md">
+          </div>
+        </div>
+
+        <input type="hidden" id="hiddenId" />
+
+        <div class="flex flex-wrap gap-3 justify-end">
+          <button type="submit" class="py-2 px-4 rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Save Lesson Plan</button>
+          <button type="button" id="exportExcel" class="py-2 px-4 rounded-md text-indigo-700 bg-indigo-50 hover:bg-indigo-100">Download Excel (.xlsx)</button>
+          <button type="button" id="clearForm" class="py-2 px-4 rounded-md text-gray-700 bg-gray-50 hover:bg-gray-100">Clear Form</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="mt-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Saved Lesson Plans (from Google Sheets)</h2>
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Week</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lesson</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="lessonPlansTable" class="bg-white divide-y divide-gray-200"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const CFG = window.EduPlanConfig;
+document.addEventListener('DOMContentLoaded', () => {
+  AOS.init(); feather.replace();
+
+  const classSel = document.getElementById('classNumber');
+  for (let i=1;i<=12;i++){ const o=document.createElement('option'); o.value=String(i); o.textContent='Class '+i; classSel.appendChild(o); }
+
+  loadLessonPlans();
+
+  document.getElementById('lessonForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = collectForm();
+    if (!payload) return;
+    const isUpdate = !!document.getElementById('hiddenId').value;
+    if (!isUpdate) {
+      payload.id = Date.now().toString();
+      payload.savedAt = new Date().toISOString();
+    }
+    try {
+      await apiPost(isUpdate ? 'update' : 'append', { row: payload, id: payload.id });
+      clearForm();
+      await loadLessonPlans();
+      window.scrollTo({top: document.body.scrollHeight, behavior:'smooth'});
+    } catch (err) {
+      alert('Save failed: ' + err.message);
+    }
+  });
+
+  document.getElementById('exportExcel').addEventListener('click', async () => {
+    const rows = await apiGet('list');
+    const data = [['Week','Day','Lesson','Subject','Class','Materials','Textbook Pages','Quiz','ID','Saved At']];
+    rows.forEach(r => data.push([r.Week, r.Day, r.Lesson, r.Subject, r.Class, r.Materials, r['Textbook Pages'], r.Quiz, r.ID, r['Saved At']]));
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Plans');
+    XLSX.writeFile(wb, 'EduPlan_Plans.xlsx');
+  });
+
+  document.getElementById('clearForm').addEventListener('click', clearForm);
+});
+
+function collectForm(){
+  const weekNumber = document.getElementById('weekNumber').value;
+  const lessonDay = document.getElementById('lessonDay').value;
+  const lessonNumber = document.getElementById('lessonNumber').value;
+  const subjectName = document.getElementById('subjectName').value.trim();
+  const classNumber = document.getElementById('classNumber').value;
+  const materials = document.getElementById('materials').value.trim();
+  const textbookPages = document.getElementById('textbookPages').value.trim();
+  const quiz = document.getElementById('quiz').value.trim();
+  const id = document.getElementById('hiddenId').value;
+
+  if(!weekNumber || !lessonDay || !lessonNumber || !subjectName || !classNumber || !materials){
+    alert('Please complete all required fields.'); return null;
+  }
+  if(!(+classNumber>=1 && +classNumber<=12)){ alert('Class must be 1–12.'); return null; }
+
+  return {
+    weekNumber, lessonDay, lessonNumber: Number(lessonNumber),
+    subjectName, classNumber, materials, textbookPages, quiz,
+    id: id || undefined
+  };
+}
+
+async function loadLessonPlans(){
+  const rows = await apiGet('list');
+  // sort
+  const dayOrder = {Sunday:0, Monday:1, Tuesday:2, Wednesday:3, Thursday:4};
+  rows.sort((a,b)=> (a.Week - b.Week) || (dayOrder[a.Day]-dayOrder[b.Day]) || (a.Lesson - b.Lesson));
+  const tbody = document.getElementById('lessonPlansTable');
+  tbody.innerHTML = '';
+  rows.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="px-6 py-3 text-sm text-gray-600">${p.Week}</td>
+      <td class="px-6 py-3 text-sm text-gray-600">${p.Day}</td>
+      <td class="px-6 py-3 text-sm text-gray-600">${p.Lesson}</td>
+      <td class="px-6 py-3 text-sm text-gray-600">${p.Subject}</td>
+      <td class="px-6 py-3 text-sm text-gray-600">${p.Class}</td>
+      <td class="px-6 py-3 text-sm font-medium">
+        <button class="text-indigo-600 hover:text-indigo-900 mr-3" onclick='editRow(${JSON.stringify(p.ID)})'>Edit</button>
+        <button class="text-red-600 hover:text-red-900" onclick='deleteRow(${JSON.stringify(p.ID)})'>Delete</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function editRow(id){
+  const rows = await apiGet('list');
+  const p = rows.find(r => String(r.ID) === String(id));
+  if(!p){ alert('Row not found'); return; }
+  document.getElementById('weekNumber').value = p.Week;
+  document.getElementById('lessonDay').value = p.Day;
+  document.getElementById('lessonNumber').value = p.Lesson;
+  document.getElementById('subjectName').value = p.Subject;
+  document.getElementById('classNumber').value = p.Class;
+  document.getElementById('materials').value = p.Materials;
+  document.getElementById('textbookPages').value = p['Textbook Pages'] || '';
+  document.getElementById('quiz').value = p.Quiz || '';
+  document.getElementById('hiddenId').value = p.ID;
+  document.getElementById('lessonForm').scrollIntoView({behavior:'smooth'});
+}
+
+async function deleteRow(id){
+  if(!confirm('Delete this lesson plan?')) return;
+  await apiPost('delete', { id });
+  await loadLessonPlans();
+  alert('Deleted.');
+}
+
+function clearForm(){
+  document.getElementById('lessonForm').reset();
+  document.getElementById('hiddenId').value = '';
+}
+
+async function apiGet(action){
+  const url = new URL(CFG.WEB_APP_URL);
+  url.searchParams.set('action', action);
+  url.searchParams.set('sheetId', CFG.SHEET_ID);
+  url.searchParams.set('sheetName', CFG.SHEET_TAB_NAME || 'Plans');
+  const res = await fetch(url.toString());
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error || 'Unknown error');
+  return data.rows || [];
+}
+
+async function apiPost(action, obj){
+  const res = await fetch(CFG.WEB_APP_URL, {
+    method:'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      action,
+      sheetId: CFG.SHEET_ID,
+      sheetName: CFG.SHEET_TAB_NAME || 'Plans',
+      ...obj
+    })
+  });
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const data = await res.json();
+  if(!data.success) throw new Error(data.error || 'Unknown error');
+  return data;
+}
+</script>
+</body>
+</html>
